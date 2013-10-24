@@ -86,7 +86,7 @@ mdl = mlp.MLP(layers,
               input_space=in_space)
 
 trainer = sgd.SGD(learning_rate=.1,
-                  batch_size=20,
+                  batch_size=40,
                   learning_rule=learning_rule.Momentum(.5),
                   #Remember, default dropout is .5
                   cost=Dropout(input_include_probs={'l1': .8},

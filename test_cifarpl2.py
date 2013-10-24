@@ -31,9 +31,9 @@ tst = cifar10.CIFAR10('test',
                       one_hot=True,
                       axes=('c', 0, 1, 'b'))
 
-preprocessor = preprocessing.ZCA()
-trn.apply_preprocessor(preprocessor=preprocessor, can_fit=True)
-tst.apply_preprocessor(preprocessor=preprocessor, can_fit=True)
+preprocessor = serial.load('cifar10_preprocessor.pkl')
+trn.apply_preprocessor(preprocessor=preprocessor, can_fit=False)
+tst.apply_preprocessor(preprocessor=preprocessor, can_fit=False)
 mdl = serial.load('cifar10_maxout_zca.pkl')
 yhat = process(mdl, trn)
 print "Train(%): ", (trn.y.argmax(axis=1).reshape(yhat.shape) == yhat).mean()

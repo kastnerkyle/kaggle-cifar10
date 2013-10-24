@@ -8,6 +8,7 @@ from pylearn2.datasets import preprocessing
 from pylearn2.space import Conv2DSpace
 from pylearn2.train import Train
 from pylearn2.train_extensions import best_params
+from pylearn2.utils import serial
 
 trn = cifar10.CIFAR10('train',
                       toronto_prepro=False,
@@ -94,7 +95,7 @@ mdl = mlp.MLP(layers,
 trainer = sgd.SGD(learning_rate=.1,
                   batch_size=20,
                   learning_rule=learning_rule.Momentum(.5),
-                  #Remember, default dropout is .5
+                  # Remember, default dropout is .5
                   cost=Dropout(input_include_probs={'l1': .8},
                                input_scales={'l1': 1.}),
                   termination_criterion=MonitorBased(
@@ -106,7 +107,8 @@ trainer = sgd.SGD(learning_rate=.1,
 
 preprocessor = preprocessing.ZCA()
 trn.apply_preprocessor(preprocessor=preprocessor, can_fit=True)
-tst.apply_preprocessor(preprocessor=preprocessor, can_fit=True)
+tst.apply_preprocessor(preprocessor=preprocessor, can_fit=False)
+serial.save('cifar10_preprocessor.pkl', preprocessor)
 
 watcher = best_params.MonitorBasedSaveBest(
     channel_name='valid_y_misclass',

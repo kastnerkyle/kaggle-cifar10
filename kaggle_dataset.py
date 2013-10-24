@@ -9,8 +9,8 @@ from scipy import misc
 class kaggle_cifar10(DenseDesignMatrix):
 
     def __init__(self, s, one_hot=False, axes=('b', 0, 1, 'c')):
-        self.label_names = ['automobile', 'airplane', 'bird', 'cat', 'dog',
-                            'deer', 'horse', 'frog', 'truck', 'ship']
+        self.label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+                            'dog', 'frog', 'horse', 'ship', 'truck']
         self.label_map = {k: v for k, v in zip(self.label_names,
                                                range(len(self.label_names)))}
         self.label_unmap = {v: k for k, v in zip(self.label_names,
