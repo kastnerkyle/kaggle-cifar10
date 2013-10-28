@@ -1,50 +1,65 @@
 #!/usr/bin/env python
 import numpy as np
 from pylearn2.datasets.dense_design_matrix import DenseDesignMatrix
-from pylearn2.datasets.dense_design_matrix import DefaultViewConverter
 from glob import glob
-from scipy import misc
+import matplotlib.image as mpimg
 
 
 class kaggle_cifar10(DenseDesignMatrix):
 
-    def __init__(self, s, one_hot=False, axes=('b', 0, 1, 'c')):
+    def __init__(self, s, one_hot=False, datapath=None, axes=('c', 0, 1, 'b')):
+        self.img_shape = (32, 32, 3)
+        self.img_size = np.prod(self.img_shape)
         self.label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
                             'dog', 'frog', 'horse', 'ship', 'truck']
+        self.n_classes = len(self.label_names)
         self.label_map = {k: v for k, v in zip(self.label_names,
-                                               range(len(self.label_names)))}
+                                               range(self.n_classes))}
         self.label_unmap = {v: k for k, v in zip(self.label_names,
-                                                 range(len(self.label_names)))}
+                                                 range(self.n_classes))}
+        self.one_hot = one_hot
+
+        assert datapath is not None
+        # Really should check for files here...
+        if datapath[-1] != '/':
+            datapath += '/'
 
         if s == 'train':
-            files = glob(
-                '/home/kkastner/kaggle_data/kaggle-cifar10/train/*.png')
+            print "Loading training set"
+            files = glob(datapath + 'train/*.png')
         elif s == 'test':
-            files = glob(
-                '/home/kkastner/kaggle_data/kaggle-cifar10/test/*.png')
+            files = glob(datapath + 'test/*.png')
         else:
-            raise ValueError("Only train and test datasets are available")
+            raise ValueError("Only train and test data is available")
 
-        X = np.array([misc.imread(f).astype('float32')
-                      for f in files])
-        X = X.reshape(X.shape[0], 3072)
+        X = np.array([mpimg.imread(f) for f in files])
+        X *= 255.0
+        X = X.swapaxes(0, 3)
+        print "Shape of X", X.shape
+        print "Datatype of X", X.dtype
 
         def convert(x):
             return self.label_map[x]
-        if s == 'train':
+
+        def get_labels():
             y = np.genfromtxt(
-                '/home/kkastner/kaggle_data/kaggle-cifar10/trainLabels.csv',
+                datapath + 'trainLabels.csv',
                 delimiter=',',
                 skip_header=1,
                 converters={1: convert})
-            self.one_hot = one_hot
-            if one_hot:
-                one_hot = np.zeros((y.shape[0], 10), dtype='float32')
+            print "y values"
+            print y[:, 1]
+            if self.one_hot:
+                hot = np.zeros((y.shape[0], self.n_classes), dtype='float32')
                 for i in xrange(y.shape[0]):
-                    one_hot[i, y[i][1] - 1] = 1.
-                y = one_hot
+                    hot[i, y[i, 1]] = 1.
+                y = hot
+            return y
+
+        if s == 'train':
+            y = get_labels()
         else:
+            print "Warning: no labels for any dataset besides train!"
             y = None
-        view_converter = DefaultViewConverter((32, 32, 3), axes)
-        super(kaggle_cifar10, self).__init__(X=X, y=y,
-                                             view_converter=view_converter)
+
+        super(kaggle_cifar10, self).__init__(topo_view=X, y=y, axes=axes)

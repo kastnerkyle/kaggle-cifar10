@@ -3,32 +3,33 @@ from pylearn2.models import mlp, maxout
 from pylearn2.costs.mlp.dropout import Dropout
 from pylearn2.training_algorithms import sgd, learning_rule
 from pylearn2.termination_criteria import MonitorBased
-from kaggle_dataset import kaggle_cifar10
+from pylearn2.datasets import cifar10
+from kaggle_dataset.py import kaggle_cifar10
 from pylearn2.datasets import preprocessing
 from pylearn2.space import Conv2DSpace
 from pylearn2.train import Train
 from pylearn2.train_extensions import best_params
+from pylearn2.utils import serial
 
 trn = kaggle_cifar10('train',
                      one_hot=True,
                      axes=('c', 0, 1, 'b'))
 
+raise ValueError("HALT!")
+
+trn = cifar10.CIFAR10('train',
+                      toronto_prepro=False,
+                      one_hot=True,
+                      axes=('c', 0, 1, 'b'))
+
+tst = cifar10.CIFAR10('test',
+                      toronto_prepro=False,
+                      one_hot=True,
+                      axes=('c', 0, 1, 'b'))
+
 in_space = Conv2DSpace(shape=(32, 32),
                        num_channels=3,
                        axes=('c', 0, 1, 'b'))
-
-l1 = maxout.MaxoutConvC01B(layer_name='l1',
-                           pad=4,
-                           tied_b=1,
-                           W_lr_scale=.05,
-                           b_lr_scale=.05,
-                           num_channels=48,
-                           num_pieces=2,
-                           kernel_shape=(8, 8),
-                           pool_shape=(4, 4),
-                           pool_stride=(2, 2),
-                           irange=.005,
-                           max_kernel_norm=.9)
 
 l1 = maxout.MaxoutConvC01B(layer_name='l1',
                            pad=4,
@@ -86,22 +87,25 @@ mdl = mlp.MLP(layers,
               input_space=in_space)
 
 trainer = sgd.SGD(learning_rate=.1,
-                  batch_size=40,
+                  batch_size=20,
                   learning_rule=learning_rule.Momentum(.5),
-                  #Remember, default dropout is .5
+                  # Remember, default dropout is .5
                   cost=Dropout(input_include_probs={'l1': .8},
                                input_scales={'l1': 1.}),
                   termination_criterion=MonitorBased(
-                      channel_name='train_y_misclass',
+                      channel_name='valid_y_misclass',
                       prop_decrease=0.,
-                      N=100),
-                  monitoring_dataset={'train': trn})
+                      N=10),
+                  monitoring_dataset={'valid': tst,
+                                      'train': trn})
 
 preprocessor = preprocessing.ZCA()
 trn.apply_preprocessor(preprocessor=preprocessor, can_fit=True)
+tst.apply_preprocessor(preprocessor=preprocessor, can_fit=False)
+serial.save('cifar10_preprocessor.pkl', preprocessor)
 
 watcher = best_params.MonitorBasedSaveBest(
-    channel_name='train_y_misclass',
+    channel_name='valid_y_misclass',
     save_path='cifarpl2_best.pkl')
 
 velocity = learning_rule.MomentumAdjustor(final_momentum=.6,
