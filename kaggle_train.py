@@ -4,7 +4,7 @@ from pylearn2.costs.mlp.dropout import Dropout
 from pylearn2.training_algorithms import sgd, learning_rule
 from pylearn2.termination_criteria import MonitorBased
 from pylearn2.datasets import cifar10
-from kaggle_dataset.py import kaggle_cifar10
+from kaggle_dataset import kaggle_cifar10
 from pylearn2.datasets import preprocessing
 from pylearn2.space import Conv2DSpace
 from pylearn2.train import Train
@@ -13,14 +13,8 @@ from pylearn2.utils import serial
 
 trn = kaggle_cifar10('train',
                      one_hot=True,
+                     datapath='/home/kkastner/kaggle_data/kaggle-cifar10',
                      axes=('c', 0, 1, 'b'))
-
-raise ValueError("HALT!")
-
-trn = cifar10.CIFAR10('train',
-                      toronto_prepro=False,
-                      one_hot=True,
-                      axes=('c', 0, 1, 'b'))
 
 tst = cifar10.CIFAR10('test',
                       toronto_prepro=False,
@@ -87,7 +81,7 @@ mdl = mlp.MLP(layers,
               input_space=in_space)
 
 trainer = sgd.SGD(learning_rate=.1,
-                  batch_size=20,
+                  batch_size=128,
                   learning_rule=learning_rule.Momentum(.5),
                   # Remember, default dropout is .5
                   cost=Dropout(input_include_probs={'l1': .8},

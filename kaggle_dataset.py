@@ -8,7 +8,7 @@ import matplotlib.image as mpimg
 class kaggle_cifar10(DenseDesignMatrix):
 
     def __init__(self, s, one_hot=False, datapath=None, axes=('c', 0, 1, 'b')):
-        self.img_shape = (32, 32, 3)
+        self.img_shape = (3, 32, 32)
         self.img_size = np.prod(self.img_shape)
         self.label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
                             'dog', 'frog', 'horse', 'ship', 'truck']
@@ -32,11 +32,11 @@ class kaggle_cifar10(DenseDesignMatrix):
         else:
             raise ValueError("Only train and test data is available")
 
+        #Sort the files so they match the labels
+        files = sorted(files, key=lambda x: int(x.split("/")[-1][:-4]))
         X = np.array([mpimg.imread(f) for f in files])
         X *= 255.0
         X = X.swapaxes(0, 3)
-        print "Shape of X", X.shape
-        print "Datatype of X", X.dtype
 
         def convert(x):
             return self.label_map[x]
@@ -47,12 +47,12 @@ class kaggle_cifar10(DenseDesignMatrix):
                 delimiter=',',
                 skip_header=1,
                 converters={1: convert})
-            print "y values"
-            print y[:, 1]
+            # y is a nparray of tuples? may need fixing for non one_hot
+            # scenario
             if self.one_hot:
                 hot = np.zeros((y.shape[0], self.n_classes), dtype='float32')
                 for i in xrange(y.shape[0]):
-                    hot[i, y[i, 1]] = 1.
+                    hot[i, y[i][1]] = 1.
                 y = hot
             return y
 
@@ -62,4 +62,6 @@ class kaggle_cifar10(DenseDesignMatrix):
             print "Warning: no labels for any dataset besides train!"
             y = None
 
-        super(kaggle_cifar10, self).__init__(topo_view=X, y=y, axes=axes)
+        super(kaggle_cifar10, self).__init__(y=y,
+                                             topo_view=X,
+                                             axes=axes)
