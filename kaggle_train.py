@@ -96,11 +96,11 @@ trainer = sgd.SGD(learning_rate=.1,
 preprocessor = preprocessing.ZCA()
 trn.apply_preprocessor(preprocessor=preprocessor, can_fit=True)
 tst.apply_preprocessor(preprocessor=preprocessor, can_fit=False)
-serial.save('cifar10_preprocessor.pkl', preprocessor)
+serial.save('kaggle_cifar10_preprocessor.pkl', preprocessor)
 
 watcher = best_params.MonitorBasedSaveBest(
     channel_name='valid_y_misclass',
-    save_path='cifarpl2_best.pkl')
+    save_path='kaggle_cifar10_maxout_zca.pkl')
 
 velocity = learning_rule.MomentumAdjustor(final_momentum=.6,
                                           start=1,

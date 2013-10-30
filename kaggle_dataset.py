@@ -2,13 +2,17 @@
 import numpy as np
 from pylearn2.datasets.dense_design_matrix import DenseDesignMatrix
 from glob import glob
+import sys
 import matplotlib.image as mpimg
 
 
 class kaggle_cifar10(DenseDesignMatrix):
 
-    def __init__(self, s, one_hot=False, datapath=None, axes=('c', 0, 1, 'b')):
+    def __init__(self, s, one_hot=False, start_idx=0, max_count=None,
+                 datapath=None, axes=('c', 0, 1, 'b')):
         self.img_shape = (3, 32, 32)
+        self.start_idx = start_idx
+        self.max_count = max_count if max_count is not None else sys.maxsize
         self.img_size = np.prod(self.img_shape)
         self.label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
                             'dog', 'frog', 'horse', 'ship', 'truck']
@@ -19,10 +23,9 @@ class kaggle_cifar10(DenseDesignMatrix):
                                                  range(self.n_classes))}
         self.one_hot = one_hot
 
-        assert datapath is not None
-        # Really should check for files here...
-        if datapath[-1] != '/':
-            datapath += '/'
+        if datapath is not None:
+            if datapath[-1] != '/':
+                datapath += '/'
 
         if s == 'train':
             print "Loading training set"
@@ -31,22 +34,24 @@ class kaggle_cifar10(DenseDesignMatrix):
             files = glob(datapath + 'test/*.png')
         else:
             raise ValueError("Only train and test data is available")
+        assert len(files) > 0, "Unable to read files! Ensure that datapath \
+                points to a directory containing 'train' and 'test' dirs."
+        files = files[self.start_idx:self.start_idx + self.max_count]
+        "Total number of files:", len(files)
+        "Starting from file:", files[0], "with index", self.start_idx
 
-        #Sort the files so they match the labels
+        # Sort the files so they match the labels
         files = sorted(files, key=lambda x: int(x.split("/")[-1][:-4]))
         X = np.array([mpimg.imread(f) for f in files])
         X *= 255.0
         X = X.swapaxes(0, 3)
-
-        def convert(x):
-            return self.label_map[x]
 
         def get_labels():
             y = np.genfromtxt(
                 datapath + 'trainLabels.csv',
                 delimiter=',',
                 skip_header=1,
-                converters={1: convert})
+                converters={1: self.convert})
             # y is a nparray of tuples? may need fixing for non one_hot
             # scenario
             if self.one_hot:
@@ -60,8 +65,14 @@ class kaggle_cifar10(DenseDesignMatrix):
             y = get_labels()
         else:
             print "Warning: no labels for any dataset besides train!"
-            y = None
+            y = np.zeros(X.shape)
 
         super(kaggle_cifar10, self).__init__(y=y,
                                              topo_view=X,
                                              axes=axes)
+
+    def convert(self, x):
+        return self.label_map[x]
+
+    def unconvert(self, x):
+        return self.label_unmap[x]
