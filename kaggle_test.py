@@ -24,9 +24,8 @@ def process(mdl, ds, batch_size=100):
 
 preprocessor = serial.load('kaggle_cifar10_preprocessor.pkl')
 mdl = serial.load('kaggle_cifar10_maxout_zca.pkl')
-# this should be divisible into 300k for best results
 fname = 'kaggle_cifar10_results.csv'
-test_size = 75000
+test_size = 100000
 sets = 300000 / test_size
 res = np.zeros((sets, test_size), dtype='float32')
 for n, i in enumerate([test_size * x for x in range(sets)]):

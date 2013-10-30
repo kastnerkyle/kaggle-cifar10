@@ -36,12 +36,12 @@ class kaggle_cifar10(DenseDesignMatrix):
             raise ValueError("Only train and test data is available")
         assert len(files) > 0, "Unable to read files! Ensure that datapath \
                 points to a directory containing 'train' and 'test' dirs."
-        files = files[self.start_idx:self.start_idx + self.max_count]
-        "Total number of files:", len(files)
-        "Starting from file:", files[0], "with index", self.start_idx
 
         # Sort the files so they match the labels
         files = sorted(files, key=lambda x: int(x.split("/")[-1][:-4]))
+        files = files[self.start_idx:self.start_idx + self.max_count]
+        "Total number of files:", len(files)
+        "Starting from file:", files[0], "with index", self.start_idx
         X = np.array([mpimg.imread(f) for f in files])
         X *= 255.0
         X = X.swapaxes(0, 3)
