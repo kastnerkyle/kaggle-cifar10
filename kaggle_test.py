@@ -26,7 +26,7 @@ preprocessor = serial.load('kaggle_cifar10_preprocessor.pkl')
 mdl = serial.load('kaggle_cifar10_maxout_zca.pkl')
 # this should be divisible into 300k for best results
 fname = 'kaggle_cifar10_results.csv'
-test_size = 50000
+test_size = 75000
 sets = 300000 / test_size
 res = np.zeros((sets, test_size), dtype='float32')
 for n, i in enumerate([test_size * x for x in range(sets)]):
@@ -41,7 +41,7 @@ for n, i in enumerate([test_size * x for x in range(sets)]):
     print "start_idx", i
     res[n, :] = yhat.ravel()
 
-converted_results = [['id', 'label']] + [[n + 1, ds.unconvert(x)]
+converted_results = [['id', 'label']] + [[n + 1, ds.unconvert(int(x))]
                                          for n, x in enumerate(res.ravel())]
 with open(fname, 'w') as f:
     csv_f = csv.writer(f, delimiter=',', quoting=csv.QUOTE_NONE)
