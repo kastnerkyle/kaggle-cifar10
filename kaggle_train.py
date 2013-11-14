@@ -93,10 +93,10 @@ trainer = sgd.SGD(learning_rate=.1,
                   monitoring_dataset={'valid': tst,
                                       'train': trn})
 
-preprocessor = preprocessing.ZCA()
-trn.apply_preprocessor(preprocessor=preprocessor, can_fit=True)
-tst.apply_preprocessor(preprocessor=preprocessor, can_fit=False)
-serial.save('kaggle_cifar10_preprocessor.pkl', preprocessor)
+#preprocessor = preprocessing.ZCA()
+#trn.apply_preprocessor(preprocessor=preprocessor, can_fit=True)
+#tst.apply_preprocessor(preprocessor=preprocessor, can_fit=False)
+#serial.save('kaggle_cifar10_preprocessor.pkl', preprocessor)
 
 watcher = best_params.MonitorBasedSaveBest(
     channel_name='valid_y_misclass',
