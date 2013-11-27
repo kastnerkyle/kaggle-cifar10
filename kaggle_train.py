@@ -8,7 +8,7 @@ from kaggle_dataset import kaggle_cifar10
 from pylearn2.datasets import preprocessing
 from pylearn2.space import Conv2DSpace
 from pylearn2.train import Train
-from pylearn2.train_extensions import best_params
+from pylearn2.train_extensions import best_params, window_flip
 from pylearn2.utils import serial
 
 trn = kaggle_cifar10('train',
@@ -89,14 +89,14 @@ trainer = sgd.SGD(learning_rate=.1,
                   termination_criterion=MonitorBased(
                       channel_name='valid_y_misclass',
                       prop_decrease=0.,
-                      N=10),
+                      N=25),
                   monitoring_dataset={'valid': tst,
                                       'train': trn})
 
-#preprocessor = preprocessing.ZCA()
-#trn.apply_preprocessor(preprocessor=preprocessor, can_fit=True)
-#tst.apply_preprocessor(preprocessor=preprocessor, can_fit=False)
-#serial.save('kaggle_cifar10_preprocessor.pkl', preprocessor)
+preprocessor = preprocessing.ZCA()
+trn.apply_preprocessor(preprocessor=preprocessor, can_fit=True)
+tst.apply_preprocessor(preprocessor=preprocessor, can_fit=False)
+serial.save('kaggle_cifar10_preprocessor.pkl', preprocessor)
 
 watcher = best_params.MonitorBasedSaveBest(
     channel_name='valid_y_misclass',
@@ -110,9 +110,14 @@ decay = sgd.LinearDecayOverEpoch(start=1,
                                  saturate=250,
                                  decay_factor=.01)
 
+win = window_flip.WindowAndFlipC01B(pad_randomized=8,
+                                    window_shape=(32, 32),
+                                    randomize=[trn],
+                                    center=[tst])
+
 experiment = Train(dataset=trn,
                    model=mdl,
                    algorithm=trainer,
-                   extensions=[watcher, velocity, decay])
+                   extensions=[watcher, velocity, decay, win])
 
 experiment.main_loop()
