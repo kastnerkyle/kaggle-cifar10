@@ -8,7 +8,7 @@ import matplotlib.image as mpimg
 
 class kaggle_cifar10(DenseDesignMatrix):
 
-    def __init__(self, s, one_hot=False, start_idx=0, max_count=None,
+    def __init__(self, s, one_hot=False, start_idx=0, max_count=None, gcn=55.,
                  datapath=None, axes=('c', 0, 1, 'b')):
         self.img_shape = (3, 32, 32)
         self.start_idx = start_idx
@@ -22,6 +22,7 @@ class kaggle_cifar10(DenseDesignMatrix):
         self.label_unmap = {v: k for k, v in zip(self.label_names,
                                                  range(self.n_classes))}
         self.one_hot = one_hot
+        self.gcn = gcn
 
         if datapath is not None:
             if datapath[-1] != '/':
@@ -40,8 +41,8 @@ class kaggle_cifar10(DenseDesignMatrix):
         # Sort the files so they match the labels
         files = sorted(files, key=lambda x: int(x.split("/")[-1][:-4]))
         files = files[self.start_idx:self.start_idx + self.max_count]
-        "Total number of files:", len(files)
-        "Starting from file:", files[0], "with index", self.start_idx
+        print "Total number of files:", len(files)
+        print "Starting from file:", files[0], "with index", self.start_idx
         X = np.array([mpimg.imread(f) for f in files])
         X *= 255.0
         X = X.swapaxes(0, 3)
