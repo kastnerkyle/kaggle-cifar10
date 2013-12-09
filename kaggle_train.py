@@ -108,7 +108,7 @@ velocity = learning_rule.MomentumAdjustor(final_momentum=.65,
                                           saturate=250)
 
 decay = sgd.LinearDecayOverEpoch(start=1,
-                                 saturate=250,
+                                 saturate=500,
                                  decay_factor=.01)
 
 win = window_flip.WindowAndFlipC01B(pad_randomized=8,
